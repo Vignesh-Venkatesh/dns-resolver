@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -137,6 +138,38 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 				break
 			}
 		}
+
+		if !found {
+			// looping through authority
+			for _, authority := range resp_packet.Authority {
+				// NS record
+				if authority.Type == 2 {
+					nsName, _, err := parseName(authority.RData, 0)
+					if err != nil {
+						return nil, fmt.Errorf("could not resolve %s", domain)
+					}
+
+					// converting label bytes to domain string
+					nsHostname := LabelsToString(nsName)
+
+					// resolving NS hostname to IP
+					nsIP, err := Resolve(ResolverInput{
+						Domain:  nsHostname,
+						Verbose: verbose,
+					})
+					if err != nil {
+						continue // trying next NS record
+					}
+
+					nameserver = nsIP.String()
+					verboseLog(verbose, "Following referral to %s (%s)", nsHostname, nameserver)
+
+					found = true
+					break
+				}
+			}
+		}
+
 		if !found {
 			verboseSpacer(verbose)
 			verboseLog(verbose, "Failed to resolve %s", domain)
@@ -148,4 +181,27 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 		connection.Close()
 	}
 
+}
+
+// function to convert byte format to string
+func LabelsToString(name []byte) string {
+	var labels []string
+	i := 0
+
+	for i < len(name) {
+		length := int(name[i])
+		if length == 0 {
+			break
+		}
+		i++
+
+		if i+length > len(name) {
+			break
+		}
+
+		labels = append(labels, string(name[i:i+length]))
+		i += length
+	}
+
+	return strings.Join(labels, ".")
 }
