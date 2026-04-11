@@ -12,7 +12,6 @@ func Parse(data []byte) (Packet, error) {
 	// header
 	header, err := parseHeader(data)
 	if err != nil {
-		fmt.Printf("invalid header\n%v", err)
 		return Packet{}, err
 	}
 	packet.Header = header
@@ -28,7 +27,6 @@ func Parse(data []byte) (Packet, error) {
 
 		question, offset, err = parseQuestion(data, offset)
 		if err != nil {
-			fmt.Printf("invalid question\n%v", err)
 			continue
 		}
 
@@ -45,7 +43,6 @@ func Parse(data []byte) (Packet, error) {
 
 		answer, offset, err = parseResource(data, offset)
 		if err != nil {
-			fmt.Printf("invalid answer\n%v", err)
 			continue
 		}
 
@@ -62,7 +59,6 @@ func Parse(data []byte) (Packet, error) {
 
 		authority, offset, err = parseResource(data, offset)
 		if err != nil {
-			fmt.Printf("invalid authority\n%v", err)
 			continue
 		}
 
@@ -79,7 +75,6 @@ func Parse(data []byte) (Packet, error) {
 
 		additional, offset, err = parseResource(data, offset)
 		if err != nil {
-			fmt.Printf("invalid additional\n%v", err)
 			continue
 		}
 
@@ -114,7 +109,6 @@ func parseQuestion(data []byte, offset int) (Question, int, error) {
 	// QName
 	question.QName, offset, err = parseName(data, offset)
 	if err != nil {
-		fmt.Println(err)
 		return Question{}, 0, err
 	}
 
@@ -141,7 +135,6 @@ func parseResource(data []byte, offset int) (Resource, int, error) {
 	// Name
 	resource.Name, offset, err = parseName(data, offset)
 	if err != nil {
-		fmt.Println(err)
 		return Resource{}, 0, err
 	}
 

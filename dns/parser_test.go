@@ -40,6 +40,12 @@ func TestParseName(t *testing.T) {
 		0,
 	}
 
+	expected := []byte{
+		3, 'w', 'w', 'w',
+		6, 'g', 'o', 'o', 'g', 'l', 'e',
+		3, 'c', 'o', 'm',
+	}
+
 	name, offset, err := parseName(data, 0)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -51,7 +57,7 @@ func TestParseName(t *testing.T) {
 		t.Errorf("expected offset %d, got %d", expectedLen, offset)
 	}
 
-	if string(name) != string(data) {
+	if string(name) != string(expected) {
 		t.Errorf("expected %v, got %v", data, name)
 	}
 }
@@ -59,7 +65,9 @@ func TestParseName(t *testing.T) {
 // testing pointer case
 func TestParseName_WithPointer(t *testing.T) {
 	data := []byte{
-		0xC0, 0x0C, // pointer
+		0xC0, 0x04,
+		0x00, 0x00,
+		3, 'c', 'o', 'm', 0,
 	}
 
 	name, offset, err := parseName(data, 0)
@@ -71,8 +79,9 @@ func TestParseName_WithPointer(t *testing.T) {
 		t.Errorf("expected offset 2, got %d", offset)
 	}
 
-	if len(name) != 2 {
-		t.Errorf("expected 2 bytes, got %d", len(name))
+	expected := []byte{3, 'c', 'o', 'm'}
+	if string(name) != string(expected) {
+		t.Errorf("expected %v, got %v", expected, name)
 	}
 }
 
