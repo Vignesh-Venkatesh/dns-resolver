@@ -185,8 +185,12 @@ func parseResource(data []byte, offset int) (Resource, int, error) {
 
 func parseName(data []byte, offset int) ([]byte, int, error) {
 
-	start := offset
+	var name []byte
+	visited := map[int]bool{}
+
 	i := offset
+	jumped := false
+	var endOffset int
 
 	for {
 		//bounds check
@@ -194,18 +198,36 @@ func parseName(data []byte, offset int) ([]byte, int, error) {
 			return nil, 0, fmt.Errorf("out of bounds")
 		}
 
+		// preventing infinite loops
+		if visited[i] {
+			return nil, 0, fmt.Errorf("compression loop detected")
+		}
+		visited[i] = true
+
 		length := int(data[i])
 
-		// it's a pointer, skipping 2 bytes and stopping
-		// TODO: resolving pointers
+		// pointer: 11xxxxxx xxxxxxxx
 		if length&0xC0 == 0xC0 {
-			i += 2
-			break
+			if i+1 >= len(data) {
+				return nil, 0, fmt.Errorf("truncated pointer")
+			}
+
+			ptr := int(binary.BigEndian.Uint16(data[i:i+2]) & 0x3FFF)
+
+			if !jumped {
+				endOffset = i + 2
+			}
+
+			i = ptr
+			jumped = true
+			continue
 		}
 
-		// null terminator
+		// null terminator, end of name
 		if length == 0 {
-			i++
+			if !jumped {
+				endOffset = i + 1
+			}
 			break
 		}
 
@@ -216,9 +238,13 @@ func parseName(data []byte, offset int) ([]byte, int, error) {
 			return nil, 0, fmt.Errorf("invalid label length")
 		}
 
+		// appending label length + label
+		name = append(name, byte(length))
+		name = append(name, data[i:i+length]...)
+
 		i += length
 	}
 
 	// return raw slice of the original data
-	return data[start:i], i, nil
+	return name, endOffset, nil
 }

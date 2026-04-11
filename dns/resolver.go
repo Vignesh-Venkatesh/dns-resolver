@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net"
+	"time"
 )
 
 type ResolverInput struct {
@@ -68,6 +69,9 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 			return nil, err
 		}
 
+		// for calculating time per request
+		start := time.Now()
+
 		// sending the packet (query)
 		_, err = connection.Write(Serialize(packet))
 		if err != nil {
@@ -85,7 +89,9 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 			return nil, err
 		}
 
-		verboseLog(verbose, "Received %d bytes from %s", n, nameserver)
+		duration := time.Since(start)
+
+		verboseLog(verbose, "Received %d bytes from %s (%.2fms)", n, nameserver, float64(duration.Microseconds())/1000)
 
 		// parsing the response packet
 		resp_packet, err := Parse(response[:n])
@@ -142,5 +148,4 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 		connection.Close()
 	}
 
-	return nil, fmt.Errorf("unreachable")
 }
