@@ -177,6 +177,7 @@ func parseResource(data []byte, offset int) (Resource, int, error) {
 	if offset+int(resource.RDLength) > len(data) {
 		return Resource{}, 0, fmt.Errorf("truncated rdata")
 	}
+	resource.RDataOffset = offset
 	resource.RData = data[offset : offset+int(resource.RDLength)]
 	offset += int(resource.RDLength)
 

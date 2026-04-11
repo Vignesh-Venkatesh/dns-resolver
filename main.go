@@ -22,18 +22,17 @@ func main() {
 	// parsing flags
 	flag.Parse()
 
-	// fmt.Println("domain:\n", domainPtr)
-	// fmt.Println("verbose:", verbosePtr)
-
+	// dns resolver
 	resolverInput := dns.ResolverInput{
 		Domain:  domainPtr,
 		Verbose: verbosePtr,
 	}
-
 	resolve, err := dns.Resolve(resolverInput)
+
+	// output
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		fmt.Printf("\n\033[31m\033[1mError: %v\n", err)
 		return
 	}
-	fmt.Printf("Resolve: %v\n", resolve.String())
+	fmt.Printf("\n\033[32m\033[1mResolved: %v\n", resolve.String())
 }

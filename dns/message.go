@@ -19,12 +19,13 @@ type Question struct {
 
 // answer, authority and additional sections share the same format
 type Resource struct {
-	Name     []byte // domain name to which this resource record points (in byte format)
-	Type     uint16 // specifies the meaning of the data in the RData field
-	Class    uint16 // specifies the class of the data in the RData field
-	TTL      uint32 // specifies the time interval (in seconds) that the resource record may be cached before it should be discarded
-	RDLength uint16 // specifies the length of the RData field
-	RData    []byte // describes the resource. varies accoding to the Type and Class
+	Name        []byte // domain name to which this resource record points (in byte format)
+	Type        uint16 // specifies the meaning of the data in the RData field
+	Class       uint16 // specifies the class of the data in the RData field
+	TTL         uint32 // specifies the time interval (in seconds) that the resource record may be cached before it should be discarded
+	RDLength    uint16 // specifies the length of the RData field
+	RData       []byte // describes the resource. varies accoding to the Type and Class
+	RDataOffset int    // offset of RData in the original message
 }
 
 // DNS packet

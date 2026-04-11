@@ -92,7 +92,7 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 
 		duration := time.Since(start)
 
-		verboseLog(verbose, "Received %d bytes from %s (%.2fms)", n, nameserver, float64(duration.Microseconds())/1000)
+		verboseLog(verbose, "Received %d bytes from %s (\033[33m%.2fms\033[0m)", n, nameserver, float64(duration.Microseconds())/1000)
 
 		// parsing the response packet
 		resp_packet, err := Parse(response[:n])
@@ -113,16 +113,40 @@ func Resolve(resolverInput ResolverInput) (net.IP, error) {
 		// if answers available
 		if resp_packet.Header.ANCount > 0 {
 			for _, answer := range resp_packet.Answers {
-				// A Record
-				if answer.Type == 1 {
+				switch answer.Type {
+
+				// A record
+				case 1:
 					ip := net.IP(answer.RData)
 
 					verboseSpacer(verbose)
-					verboseLog(verbose, "Resolved %s -> %s", domain, ip.String())
+					verboseLog(verbose, "%s -> %s", domain, ip.String())
 
 					connection.Close()
 					return ip, nil
+
+				// CNAME
+				case 5:
+					// parsing the CNAME target from RData
+					cnameLabels, _, err := parseName(response[:n], answer.RDataOffset)
+					if err != nil {
+						connection.Close()
+						return nil, err
+					}
+
+					cname := LabelsToString(cnameLabels)
+
+					verboseLog(verbose, "CNAME %s -> %s", domain, cname)
+
+					connection.Close()
+
+					// recursively resolving the CNAME target
+					return Resolve(ResolverInput{
+						Domain:  cname,
+						Verbose: verbose,
+					})
 				}
+
 			}
 		}
 
