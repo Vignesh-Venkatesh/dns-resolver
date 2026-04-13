@@ -1,6 +1,8 @@
 # DNS Resolver
 A recursive DNS resolver built from scratch in Go, without using any DNS libraries.
 
+Read the full write up on how this resolver was built on my [blog](https://blog.vigneshvenkatesh.com/blog/dns-resolver-1)
+
 ---
 ## Demo
 ```bash
